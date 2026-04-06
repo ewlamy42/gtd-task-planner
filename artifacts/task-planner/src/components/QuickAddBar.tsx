@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Folder, AlertCircle } from "lucide-react";
-import { useCreateTask, useListEnvironments, getListTasksQueryKey, getGetTaskStatsQueryKey } from "@workspace/api-client-react";
+import { useCreateTask, useListEnvironments, getListTasksQueryKey, getGetTaskStatsQueryKey, TaskUrgency, TaskStatus } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function QuickAddBar() {
   const [title, setTitle] = useState("");
-  const [urgency, setUrgency] = useState<"now" | "soon" | "later">("now");
+  const [urgency, setUrgency] = useState<TaskUrgency>(TaskUrgency.now);
   const [environmentId, setEnvironmentId] = useState<string>("none");
-  const [status, setStatus] = useState<"inbox" | "next_action" | "project" | "waiting_for" | "someday_maybe">("inbox");
+  const [status, setStatus] = useState<TaskStatus>(TaskStatus.inbox);
   
   const { data: environments } = useListEnvironments();
   const createTask = useCreateTask();
@@ -89,7 +89,7 @@ export default function QuickAddBar() {
           </SelectContent>
         </Select>
 
-        <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
+        <Select value={urgency} onValueChange={(val) => setUrgency(val as TaskUrgency)}>
           <SelectTrigger className="w-[100px] h-8 text-xs border-dashed shrink-0">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-3 h-3" />
@@ -103,7 +103,7 @@ export default function QuickAddBar() {
           </SelectContent>
         </Select>
         
-        <Select value={status} onValueChange={(val: any) => setStatus(val)}>
+        <Select value={status} onValueChange={(val) => setStatus(val as TaskStatus)}>
           <SelectTrigger className="w-[110px] h-8 text-xs border-dashed shrink-0">
             <SelectValue placeholder="Status" />
           </SelectTrigger>

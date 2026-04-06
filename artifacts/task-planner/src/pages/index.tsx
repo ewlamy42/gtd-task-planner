@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useListTasks, Task } from "@workspace/api-client-react";
+import { useListTasks, Task, ListTasksParams } from "@workspace/api-client-react";
 import Sidebar from "@/components/Sidebar";
 import QuickAddBar from "@/components/QuickAddBar";
 import TaskCard from "@/components/TaskCard";
@@ -15,20 +15,24 @@ export default function Dashboard() {
   // Filters state
   const [search, setSearch] = useState("");
   const [urgencyFilter, setUrgencyFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [environmentFilter, setEnvironmentFilter] = useState<string[]>([]);
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [includeCompleted, setIncludeCompleted] = useState(false);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  const queryParams = useMemo(() => {
-    const params: any = {};
+  const queryParams = useMemo((): ListTasksParams => {
+    const params: ListTasksParams = {};
     if (currentStatus === "completed") {
       params.includeCompleted = true;
-      // We don't filter by status for the completed view to show ALL completed tasks
-      // unless we want to, but GTD usually just has a "completed" view.
     } else if (currentStatus) {
       params.status = currentStatus;
+    }
+
+    // If statusFilter is active (and no sidebar status selected), use it
+    if (!currentStatus && statusFilter.length > 0) {
+      params.status = statusFilter.join(",");
     }
     
     if (search) params.search = search;
@@ -36,13 +40,12 @@ export default function Dashboard() {
     if (environmentFilter.length > 0) params.environmentIds = environmentFilter.join(",");
     if (tagsFilter.length > 0) params.tags = tagsFilter.join(",");
     
-    // If not in completed view, respect the toggle
     if (currentStatus !== "completed") {
       params.includeCompleted = includeCompleted;
     }
 
     return params;
-  }, [currentStatus, search, urgencyFilter, environmentFilter, tagsFilter, includeCompleted]);
+  }, [currentStatus, search, urgencyFilter, statusFilter, environmentFilter, tagsFilter, includeCompleted]);
 
   const { data: tasks, isLoading } = useListTasks(queryParams);
 
@@ -139,6 +142,7 @@ export default function Dashboard() {
               <FiltersPanel 
                 search={search} setSearch={setSearch}
                 urgencyFilter={urgencyFilter} setUrgencyFilter={setUrgencyFilter}
+                statusFilter={statusFilter} setStatusFilter={setStatusFilter}
                 environmentFilter={environmentFilter} setEnvironmentFilter={setEnvironmentFilter}
                 tagsFilter={tagsFilter} setTagsFilter={setTagsFilter}
                 includeCompleted={includeCompleted} setIncludeCompleted={setIncludeCompleted}
@@ -168,6 +172,7 @@ export default function Dashboard() {
                     onClick={() => {
                       setSearch("");
                       setUrgencyFilter([]);
+                      setStatusFilter([]);
                       setEnvironmentFilter([]);
                       setTagsFilter([]);
                     }}

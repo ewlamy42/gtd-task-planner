@@ -13,6 +13,7 @@ import {
   Task, 
   TaskStatus, 
   TaskUrgency,
+  UpdateTaskBody,
   useUpdateTask,
   getGetTaskStatsQueryKey,
   getListTasksQueryKey
@@ -73,7 +74,7 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
 
   const handleStatusChange = (status: string) => {
     updateTask.mutate(
-      { id: task.id, data: { status: status as any } },
+      { id: task.id, data: { status: status as UpdateTaskBody["status"] } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTasksQueryKey() });
@@ -85,7 +86,7 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
 
   const handleUrgencyChange = (urgency: string) => {
     updateTask.mutate(
-      { id: task.id, data: { urgency: urgency as any } },
+      { id: task.id, data: { urgency: urgency as UpdateTaskBody["urgency"] } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTasksQueryKey() });

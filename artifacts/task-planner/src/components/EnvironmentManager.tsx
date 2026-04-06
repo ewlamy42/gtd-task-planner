@@ -75,7 +75,7 @@ export default function EnvironmentManager({ isOpen, onClose }: EnvironmentManag
           queryClient.invalidateQueries({ queryKey: getListEnvironmentsQueryKey() });
           toast({ title: "Environment deleted" });
         },
-        onError: (err: any) => {
+        onError: () => {
           toast({
             title: "Cannot delete",
             description: "Environment might contain tasks. Move them first.",

@@ -13,11 +13,21 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+const STATUS_OPTIONS = [
+  { value: "inbox", label: "Inbox" },
+  { value: "next_action", label: "Next Action" },
+  { value: "project", label: "Project" },
+  { value: "waiting_for", label: "Waiting For" },
+  { value: "someday_maybe", label: "Someday/Maybe" },
+];
+
 interface FiltersPanelProps {
   search: string;
   setSearch: (s: string) => void;
   urgencyFilter: string[];
   setUrgencyFilter: (u: string[]) => void;
+  statusFilter: string[];
+  setStatusFilter: (s: string[]) => void;
   environmentFilter: string[];
   setEnvironmentFilter: (e: string[]) => void;
   tagsFilter: string[];
@@ -31,6 +41,8 @@ export default function FiltersPanel({
   setSearch,
   urgencyFilter,
   setUrgencyFilter,
+  statusFilter,
+  setStatusFilter,
   environmentFilter,
   setEnvironmentFilter,
   tagsFilter,
@@ -46,6 +58,14 @@ export default function FiltersPanel({
       setUrgencyFilter(urgencyFilter.filter((item) => item !== u));
     } else {
       setUrgencyFilter([...urgencyFilter, u]);
+    }
+  };
+
+  const toggleStatus = (s: string) => {
+    if (statusFilter.includes(s)) {
+      setStatusFilter(statusFilter.filter((item) => item !== s));
+    } else {
+      setStatusFilter([...statusFilter, s]);
     }
   };
 
@@ -75,6 +95,7 @@ export default function FiltersPanel({
   const activeFiltersCount =
     (search ? 1 : 0) +
     urgencyFilter.length +
+    statusFilter.length +
     environmentFilter.length +
     tagsFilter.length +
     (includeCompleted ? 1 : 0);
@@ -126,6 +147,22 @@ export default function FiltersPanel({
                     onClick={() => toggleUrgency(u)}
                   >
                     {u}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm leading-none">Status</h4>
+              <div className="flex flex-wrap gap-2">
+                {STATUS_OPTIONS.map(({ value, label }) => (
+                  <Badge
+                    key={value}
+                    variant={statusFilter.includes(value) ? "default" : "outline"}
+                    className="cursor-pointer text-[10px]"
+                    onClick={() => toggleStatus(value)}
+                  >
+                    {label}
                   </Badge>
                 ))}
               </div>
@@ -200,6 +237,7 @@ export default function FiltersPanel({
                   onClick={() => {
                     setSearch("");
                     setUrgencyFilter([]);
+                    setStatusFilter([]);
                     setEnvironmentFilter([]);
                     setTagsFilter([]);
                     setIncludeCompleted(false);
