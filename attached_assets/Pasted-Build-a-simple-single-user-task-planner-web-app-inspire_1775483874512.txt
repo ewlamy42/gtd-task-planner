@@ -1,0 +1,150 @@
+Build a simple single-user task planner web app inspired by Google Keep and the Getting Things Done (GTD) framework.
+
+Tech stack
+Frontend: React + TypeScript (Vite or CRA), simple CSS (no heavy UI framework required).
+Backend: Node.js + Express.
+Persistence: A single SQLite database file stored in the project (e.g., data/tasks.db).
+Goal: Keep the architecture simple but cleanly separate the data access layer so it can be swapped for a cloud database later (e.g., by isolating DB logic in a repository module).
+Core concepts
+The app is strictly single-user. No authentication, no accounts, no multi-tenant logic.
+
+We have three key concepts:
+
+Task
+Environment (e.g., work / side gig / personal / custom)
+GTD status and priority
+Task model
+Each task should have at least:
+
+id (string or number)
+title (string, required)
+description (string, optional)
+environmentId (reference to an Environment)
+Priority:
+urgency (enum: "now" | "soon" | "later" to mirror GTD “next actions” style)
+rank (number, e.g., 1 = highest within that urgency; used for global ordering across all tasks)
+status (enum reflecting GTD:
+"inbox", "next_action", "project", "waiting_for", "someday_maybe")
+dueDate (nullable date)
+tags (array of strings; these effectively double as GTD contexts such as @home, @computer, etc.)
+completed (boolean)
+createdAt, updatedAt (timestamps)
+Environment model
+id
+name (e.g., “Work”, “Side gig”, “Personal”, but user can create custom environments)
+Environments are just labels; tasks reference them by environmentId.
+Features & behavior
+Views & filters
+
+Ability to view tasks for a single environment or a merged view across multiple or all environments.
+Default environments to seed: Work, Side gig, Personal, but allow adding/removing custom environments.
+Views are basically filtered lists:
+Inbox
+Projects
+Next Actions
+Waiting For
+Someday/Maybe
+Global priority sorting
+
+When listing tasks (especially in merged view), sort globally by:
+1. urgency (Now > Soon > Later)
+2. rank (ascending numeric rank within that urgency group)
+3. createdAt as a tiebreaker.
+This should work across all environments, not just within one.
+Quick add
+
+At the top of the main view, include a single-line “quick add” input that lets the user create a new task with:
+Title (required)
+Optional minimal controls (e.g., dropdowns or defaults) for environment, status, and urgency.
+After adding, the task appears immediately in the currently active filtered list.
+Task cards UI (Google Keep-style)
+
+Display tasks as simple cards in a responsive grid (like Google Keep), not a dense table.
+Each card should show:
+Title
+Environment name
+Status (Inbox / Next Action / etc.)
+Priority (urgency + rank)
+Due date (if set)
+Tags/contexts
+Completion checkbox
+Support basic inline actions on the card:
+Mark complete / incomplete
+Change status via a small dropdown (Inbox/Next Action/Project/Waiting For/Someday/Maybe)
+Change urgency (Now/Soon/Later)
+A simple click or “edit” icon should open a basic edit form (modal or inline) where user can change all fields.
+Search & filters
+
+Search bar that filters tasks by case-insensitive match on title OR description.
+Filter controls:
+Environments (single or multi-select; include “All environments”)
+Priority:
+Filter by urgency (Now/Soon/Later)
+Optional: filter by a simple “High/Medium/Low” view derived from combinations of urgency + rank
+Tags/contexts (multi-select)
+Status (Inbox / Next Action / Project / Waiting For / Someday/Maybe / Completed)
+Filters should combine logically (AND across categories, OR within multi-select lists).
+GTD alignment
+
+Implement the following “buckets” as list presets (just saved filter combinations, no extra DB tables):
+Inbox: status = inbox.
+Projects: status = project (these represent multi-step outcomes; they’re still tasks, but maybe visually styled as “project”).
+Next Actions: status = next_action.
+Waiting For: status = waiting_for.
+Someday/Maybe: status = someday_maybe.
+We do not need auto-linking of tasks to projects for v1; just make it easy to manually set status and see lists.
+Simplicity / non-goals for v1
+
+Keep the UI minimal and clean; prioritize clarity over advanced UX flourishes.
+No user accounts / authentication.
+No calendar integration or external APIs.
+No notifications or reminders required for v1.
+No multi-user or collaboration features.
+API design (suggested)
+Create a minimal REST-ish API:
+
+GET /api/environments
+POST /api/environments
+PUT /api/environments/:id
+`DELETE /api/environments/:id` (only if no tasks OR after reassigning tasks)
+GET /api/tasks with query params for basic filtering:
+environmentIds, status, urgency, search, tags, includeCompleted
+POST /api/tasks
+GET /api/tasks/:id
+PUT /api/tasks/:id
+DELETE /api/tasks/:id
+Persistence & structure
+Use SQLite (via a simple library like better-sqlite3 or equivalent).
+Put all DB access in a separate module (e.g., db/tasksRepository.ts) so that:
+The rest of the code calls repository methods (getTasks, createTask, etc.).
+Later, this repository can be replaced with a cloud database with minimal changes.
+Project structure
+Use a clear structure, for example:
+
+/server
+index.ts (Express server)
+db/ (SQLite connection + repository modules)
+routes/ (task and environment routes)
+/client
+React app (Vite or CRA)
+Components for:
+TaskBoard (grid of cards)
+TaskCard
+QuickAddBar
+FiltersPanel
+EnvironmentManager (basic CRUD envs)
+Root README.md with clear instructions:
+How to install dependencies
+How to run dev servers on Replit (backend + frontend)
+Any environment variables if needed (but minimize them for v1)
+UX details
+Default view: “All environments”, status = any except completed, sorted by priority (Now/Soon/Later + rank).
+A small toggle or filter to show/hide completed tasks.
+Keep all styling basic but readable (e.g., simple light theme, card shadows, clear typography).
+Please generate:
+
+A working initial implementation of this full-stack app suitable for Replit.
+Clear comments and a concise README.md so an intermediate developer can continue iterating on:
+Storage layer (for future cloud sync)
+UI styling / layout
+Additional GTD workflows (e.g., “Today” view, weekly review) in later versions.
