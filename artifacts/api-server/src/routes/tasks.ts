@@ -24,7 +24,14 @@ router.get("/tasks/stats", async (_req, res): Promise<void> => {
 });
 
 router.get("/tasks", async (req, res): Promise<void> => {
-  const parsed = ListTasksQueryParams.safeParse(req.query);
+  const rawQuery = { ...req.query };
+  if ("includeCompleted" in rawQuery) {
+    rawQuery["includeCompleted"] =
+      rawQuery["includeCompleted"] === "true" || rawQuery["includeCompleted"] === "1"
+        ? (true as unknown as string)
+        : (false as unknown as string);
+  }
+  const parsed = ListTasksQueryParams.safeParse(rawQuery);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;

@@ -1,10 +1,16 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
+
+// Resolve the monorepo root: dist/index.mjs → dist → api-server → artifacts → <root>
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, "..", "..", "..", "..");
 
 const DATA_DIR = process.env["SQLITE_DB_PATH"]
   ? path.dirname(process.env["SQLITE_DB_PATH"])
-  : path.resolve(process.cwd(), "data");
+  : path.join(REPO_ROOT, "data");
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
