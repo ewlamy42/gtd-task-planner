@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "GTD Task Planner"
+version = "1.0.0"
+id = "artifacts/task-planner"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19433
+
+[services.development]
+run = "pnpm --filter @workspace/task-planner run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/task-planner", "run", "build" ]
+publicDir = "artifacts/task-planner/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19433"
+BASE_PATH = "/"

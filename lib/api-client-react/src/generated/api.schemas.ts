@@ -8,3 +8,169 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Environment {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface CreateEnvironmentBody {
+  name: string;
+}
+
+export interface UpdateEnvironmentBody {
+  name: string;
+}
+
+export type TaskUrgency = (typeof TaskUrgency)[keyof typeof TaskUrgency];
+
+export const TaskUrgency = {
+  now: "now",
+  soon: "soon",
+  later: "later",
+} as const;
+
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
+
+export const TaskStatus = {
+  inbox: "inbox",
+  next_action: "next_action",
+  project: "project",
+  waiting_for: "waiting_for",
+  someday_maybe: "someday_maybe",
+} as const;
+
+export interface Task {
+  id: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  environmentId?: number | null;
+  /** @nullable */
+  environmentName?: string | null;
+  urgency: TaskUrgency;
+  rank: number;
+  status: TaskStatus;
+  /** @nullable */
+  dueDate?: string | null;
+  tags: string[];
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateTaskBodyUrgency =
+  (typeof CreateTaskBodyUrgency)[keyof typeof CreateTaskBodyUrgency];
+
+export const CreateTaskBodyUrgency = {
+  now: "now",
+  soon: "soon",
+  later: "later",
+} as const;
+
+export type CreateTaskBodyStatus =
+  (typeof CreateTaskBodyStatus)[keyof typeof CreateTaskBodyStatus];
+
+export const CreateTaskBodyStatus = {
+  inbox: "inbox",
+  next_action: "next_action",
+  project: "project",
+  waiting_for: "waiting_for",
+  someday_maybe: "someday_maybe",
+} as const;
+
+export interface CreateTaskBody {
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  environmentId?: number | null;
+  urgency?: CreateTaskBodyUrgency;
+  rank?: number;
+  status?: CreateTaskBodyStatus;
+  /** @nullable */
+  dueDate?: string | null;
+  tags?: string[];
+  completed?: boolean;
+}
+
+export type UpdateTaskBodyUrgency =
+  (typeof UpdateTaskBodyUrgency)[keyof typeof UpdateTaskBodyUrgency];
+
+export const UpdateTaskBodyUrgency = {
+  now: "now",
+  soon: "soon",
+  later: "later",
+} as const;
+
+export type UpdateTaskBodyStatus =
+  (typeof UpdateTaskBodyStatus)[keyof typeof UpdateTaskBodyStatus];
+
+export const UpdateTaskBodyStatus = {
+  inbox: "inbox",
+  next_action: "next_action",
+  project: "project",
+  waiting_for: "waiting_for",
+  someday_maybe: "someday_maybe",
+} as const;
+
+export interface UpdateTaskBody {
+  title?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  environmentId?: number | null;
+  urgency?: UpdateTaskBodyUrgency;
+  rank?: number;
+  status?: UpdateTaskBodyStatus;
+  /** @nullable */
+  dueDate?: string | null;
+  tags?: string[];
+  completed?: boolean;
+}
+
+export interface TaskStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface TaskUrgencyCount {
+  urgency: string;
+  count: number;
+}
+
+export interface TaskStats {
+  total: number;
+  completed: number;
+  byStatus: TaskStatusCount[];
+  byUrgency: TaskUrgencyCount[];
+}
+
+export type ListTasksParams = {
+  /**
+   * Comma-separated list of environment IDs to filter by
+   */
+  environmentIds?: string;
+  /**
+   * Comma-separated list of GTD statuses
+   */
+  status?: string;
+  /**
+   * Comma-separated list of urgency levels (now,soon,later)
+   */
+  urgency?: string;
+  /**
+   * Search string to match against title and description
+   */
+  search?: string;
+  /**
+   * Comma-separated list of tags to filter by
+   */
+  tags?: string;
+  /**
+   * Include completed tasks (default false)
+   */
+  includeCompleted?: boolean;
+};

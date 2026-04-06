@@ -5,18 +5,31 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  CreateEnvironmentBody,
+  CreateTaskBody,
+  Environment,
+  HealthStatus,
+  ListTasksParams,
+  Task,
+  TaskStats,
+  UpdateEnvironmentBody,
+  UpdateTaskBody,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +112,838 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List all environments
+ */
+export const getListEnvironmentsUrl = () => {
+  return `/api/environments`;
+};
+
+export const listEnvironments = async (
+  options?: RequestInit,
+): Promise<Environment[]> => {
+  return customFetch<Environment[]>(getListEnvironmentsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListEnvironmentsQueryKey = () => {
+  return [`/api/environments`] as const;
+};
+
+export const getListEnvironmentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listEnvironments>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listEnvironments>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListEnvironmentsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listEnvironments>>
+  > = ({ signal }) => listEnvironments({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listEnvironments>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListEnvironmentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listEnvironments>>
+>;
+export type ListEnvironmentsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all environments
+ */
+
+export function useListEnvironments<
+  TData = Awaited<ReturnType<typeof listEnvironments>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listEnvironments>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListEnvironmentsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new environment
+ */
+export const getCreateEnvironmentUrl = () => {
+  return `/api/environments`;
+};
+
+export const createEnvironment = async (
+  createEnvironmentBody: CreateEnvironmentBody,
+  options?: RequestInit,
+): Promise<Environment> => {
+  return customFetch<Environment>(getCreateEnvironmentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createEnvironmentBody),
+  });
+};
+
+export const getCreateEnvironmentMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createEnvironment>>,
+    TError,
+    { data: BodyType<CreateEnvironmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createEnvironment>>,
+  TError,
+  { data: BodyType<CreateEnvironmentBody> },
+  TContext
+> => {
+  const mutationKey = ["createEnvironment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createEnvironment>>,
+    { data: BodyType<CreateEnvironmentBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createEnvironment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateEnvironmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createEnvironment>>
+>;
+export type CreateEnvironmentMutationBody = BodyType<CreateEnvironmentBody>;
+export type CreateEnvironmentMutationError = ErrorType<void>;
+
+/**
+ * @summary Create a new environment
+ */
+export const useCreateEnvironment = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createEnvironment>>,
+    TError,
+    { data: BodyType<CreateEnvironmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createEnvironment>>,
+  TError,
+  { data: BodyType<CreateEnvironmentBody> },
+  TContext
+> => {
+  return useMutation(getCreateEnvironmentMutationOptions(options));
+};
+
+/**
+ * @summary Update an environment
+ */
+export const getUpdateEnvironmentUrl = (id: number) => {
+  return `/api/environments/${id}`;
+};
+
+export const updateEnvironment = async (
+  id: number,
+  updateEnvironmentBody: UpdateEnvironmentBody,
+  options?: RequestInit,
+): Promise<Environment> => {
+  return customFetch<Environment>(getUpdateEnvironmentUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateEnvironmentBody),
+  });
+};
+
+export const getUpdateEnvironmentMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEnvironment>>,
+    TError,
+    { id: number; data: BodyType<UpdateEnvironmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateEnvironment>>,
+  TError,
+  { id: number; data: BodyType<UpdateEnvironmentBody> },
+  TContext
+> => {
+  const mutationKey = ["updateEnvironment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateEnvironment>>,
+    { id: number; data: BodyType<UpdateEnvironmentBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateEnvironment(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateEnvironmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateEnvironment>>
+>;
+export type UpdateEnvironmentMutationBody = BodyType<UpdateEnvironmentBody>;
+export type UpdateEnvironmentMutationError = ErrorType<void>;
+
+/**
+ * @summary Update an environment
+ */
+export const useUpdateEnvironment = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEnvironment>>,
+    TError,
+    { id: number; data: BodyType<UpdateEnvironmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateEnvironment>>,
+  TError,
+  { id: number; data: BodyType<UpdateEnvironmentBody> },
+  TContext
+> => {
+  return useMutation(getUpdateEnvironmentMutationOptions(options));
+};
+
+/**
+ * @summary Delete an environment
+ */
+export const getDeleteEnvironmentUrl = (id: number) => {
+  return `/api/environments/${id}`;
+};
+
+export const deleteEnvironment = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteEnvironmentUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteEnvironmentMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteEnvironment>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteEnvironment>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteEnvironment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteEnvironment>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteEnvironment(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteEnvironmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteEnvironment>>
+>;
+
+export type DeleteEnvironmentMutationError = ErrorType<void>;
+
+/**
+ * @summary Delete an environment
+ */
+export const useDeleteEnvironment = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteEnvironment>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteEnvironment>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteEnvironmentMutationOptions(options));
+};
+
+/**
+ * @summary List tasks with optional filters
+ */
+export const getListTasksUrl = (params?: ListTasksParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/tasks?${stringifiedParams}`
+    : `/api/tasks`;
+};
+
+export const listTasks = async (
+  params?: ListTasksParams,
+  options?: RequestInit,
+): Promise<Task[]> => {
+  return customFetch<Task[]>(getListTasksUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListTasksQueryKey = (params?: ListTasksParams) => {
+  return [`/api/tasks`, ...(params ? [params] : [])] as const;
+};
+
+export const getListTasksQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTasks>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListTasksParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTasks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListTasksQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listTasks>>> = ({
+    signal,
+  }) => listTasks(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listTasks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListTasksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTasks>>
+>;
+export type ListTasksQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List tasks with optional filters
+ */
+
+export function useListTasks<
+  TData = Awaited<ReturnType<typeof listTasks>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListTasksParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTasks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTasksQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new task
+ */
+export const getCreateTaskUrl = () => {
+  return `/api/tasks`;
+};
+
+export const createTask = async (
+  createTaskBody: CreateTaskBody,
+  options?: RequestInit,
+): Promise<Task> => {
+  return customFetch<Task>(getCreateTaskUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTaskBody),
+  });
+};
+
+export const getCreateTaskMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTask>>,
+    TError,
+    { data: BodyType<CreateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createTask>>,
+  TError,
+  { data: BodyType<CreateTaskBody> },
+  TContext
+> => {
+  const mutationKey = ["createTask"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createTask>>,
+    { data: BodyType<CreateTaskBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createTask(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createTask>>
+>;
+export type CreateTaskMutationBody = BodyType<CreateTaskBody>;
+export type CreateTaskMutationError = ErrorType<void>;
+
+/**
+ * @summary Create a new task
+ */
+export const useCreateTask = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTask>>,
+    TError,
+    { data: BodyType<CreateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createTask>>,
+  TError,
+  { data: BodyType<CreateTaskBody> },
+  TContext
+> => {
+  return useMutation(getCreateTaskMutationOptions(options));
+};
+
+/**
+ * @summary Get task statistics and counts by status/urgency
+ */
+export const getGetTaskStatsUrl = () => {
+  return `/api/tasks/stats`;
+};
+
+export const getTaskStats = async (
+  options?: RequestInit,
+): Promise<TaskStats> => {
+  return customFetch<TaskStats>(getGetTaskStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTaskStatsQueryKey = () => {
+  return [`/api/tasks/stats`] as const;
+};
+
+export const getGetTaskStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTaskStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaskStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTaskStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaskStats>>> = ({
+    signal,
+  }) => getTaskStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTaskStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTaskStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTaskStats>>
+>;
+export type GetTaskStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get task statistics and counts by status/urgency
+ */
+
+export function useGetTaskStats<
+  TData = Awaited<ReturnType<typeof getTaskStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaskStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTaskStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a single task by ID
+ */
+export const getGetTaskUrl = (id: number) => {
+  return `/api/tasks/${id}`;
+};
+
+export const getTask = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Task> => {
+  return customFetch<Task>(getGetTaskUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTaskQueryKey = (id: number) => {
+  return [`/api/tasks/${id}`] as const;
+};
+
+export const getGetTaskQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTask>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getTask>>, TError, TData>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTaskQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTask>>> = ({
+    signal,
+  }) => getTask(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTask>>, TError, TData> & {
+    queryKey: QueryKey;
+  };
+};
+
+export type GetTaskQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTask>>
+>;
+export type GetTaskQueryError = ErrorType<void>;
+
+/**
+ * @summary Get a single task by ID
+ */
+
+export function useGetTask<
+  TData = Awaited<ReturnType<typeof getTask>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getTask>>, TError, TData>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTaskQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a task
+ */
+export const getUpdateTaskUrl = (id: number) => {
+  return `/api/tasks/${id}`;
+};
+
+export const updateTask = async (
+  id: number,
+  updateTaskBody: UpdateTaskBody,
+  options?: RequestInit,
+): Promise<Task> => {
+  return customFetch<Task>(getUpdateTaskUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateTaskBody),
+  });
+};
+
+export const getUpdateTaskMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTask>>,
+    TError,
+    { id: number; data: BodyType<UpdateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateTask>>,
+  TError,
+  { id: number; data: BodyType<UpdateTaskBody> },
+  TContext
+> => {
+  const mutationKey = ["updateTask"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateTask>>,
+    { id: number; data: BodyType<UpdateTaskBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateTask(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateTask>>
+>;
+export type UpdateTaskMutationBody = BodyType<UpdateTaskBody>;
+export type UpdateTaskMutationError = ErrorType<void>;
+
+/**
+ * @summary Update a task
+ */
+export const useUpdateTask = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTask>>,
+    TError,
+    { id: number; data: BodyType<UpdateTaskBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateTask>>,
+  TError,
+  { id: number; data: BodyType<UpdateTaskBody> },
+  TContext
+> => {
+  return useMutation(getUpdateTaskMutationOptions(options));
+};
+
+/**
+ * @summary Delete a task
+ */
+export const getDeleteTaskUrl = (id: number) => {
+  return `/api/tasks/${id}`;
+};
+
+export const deleteTask = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteTaskUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteTaskMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTask>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteTask>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteTask"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteTask>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteTask(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTask>>
+>;
+
+export type DeleteTaskMutationError = ErrorType<void>;
+
+/**
+ * @summary Delete a task
+ */
+export const useDeleteTask = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTask>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteTask>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteTaskMutationOptions(options));
+};

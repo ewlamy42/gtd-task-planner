@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: environments
+    description: Environment operations
+  - name: tasks
+    description: Task operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,228 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /environments:
+    get:
+      operationId: listEnvironments
+      tags: [environments]
+      summary: List all environments
+      responses:
+        "200":
+          description: List of environments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Environment"
+    post:
+      operationId: createEnvironment
+      tags: [environments]
+      summary: Create a new environment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEnvironmentBody"
+      responses:
+        "201":
+          description: Created environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Environment"
+        "400":
+          description: Invalid input
+
+  /environments/{id}:
+    put:
+      operationId: updateEnvironment
+      tags: [environments]
+      summary: Update an environment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEnvironmentBody"
+      responses:
+        "200":
+          description: Updated environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Environment"
+        "404":
+          description: Environment not found
+    delete:
+      operationId: deleteEnvironment
+      tags: [environments]
+      summary: Delete an environment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Environment not found
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List tasks with optional filters
+      parameters:
+        - name: environmentIds
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of environment IDs to filter by
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of GTD statuses
+        - name: urgency
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of urgency levels (now,soon,later)
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search string to match against title and description
+        - name: tags
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of tags to filter by
+        - name: includeCompleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include completed tasks (default false)
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskBody"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Invalid input
+
+  /tasks/stats:
+    get:
+      operationId: getTaskStats
+      tags: [tasks]
+      summary: Get task statistics and counts by status/urgency
+      responses:
+        "200":
+          description: Task statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStats"
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a single task by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+    put:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskBody"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Task not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +260,173 @@ components:
       required:
         - status
 
+    Environment:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - createdAt
+
+    CreateEnvironmentBody:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    UpdateEnvironmentBody:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        environmentId:
+          type: ["integer", "null"]
+        environmentName:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: ["now", "soon", "later"]
+        rank:
+          type: integer
+        status:
+          type: string
+          enum: ["inbox", "next_action", "project", "waiting_for", "someday_maybe"]
+        dueDate:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        completed:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - urgency
+        - rank
+        - status
+        - tags
+        - completed
+        - createdAt
+        - updatedAt
+
+    CreateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        environmentId:
+          type: ["integer", "null"]
+        urgency:
+          type: string
+          enum: ["now", "soon", "later"]
+        rank:
+          type: integer
+        status:
+          type: string
+          enum: ["inbox", "next_action", "project", "waiting_for", "someday_maybe"]
+        dueDate:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        completed:
+          type: boolean
+      required:
+        - title
+
+    UpdateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        environmentId:
+          type: ["integer", "null"]
+        urgency:
+          type: string
+          enum: ["now", "soon", "later"]
+        rank:
+          type: integer
+        status:
+          type: string
+          enum: ["inbox", "next_action", "project", "waiting_for", "someday_maybe"]
+        dueDate:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        completed:
+          type: boolean
+
+    TaskStatusCount:
+      type: object
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+      required:
+        - status
+        - count
+
+    TaskUrgencyCount:
+      type: object
+      properties:
+        urgency:
+          type: string
+        count:
+          type: integer
+      required:
+        - urgency
+        - count
+
+    TaskStats:
+      type: object
+      properties:
+        total:
+          type: integer
+        completed:
+          type: integer
+        byStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskStatusCount"
+        byUrgency:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskUrgencyCount"
+      required:
+        - total
+        - completed
+        - byStatus
+        - byUrgency

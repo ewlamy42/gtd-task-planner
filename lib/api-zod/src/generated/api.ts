@@ -14,3 +14,213 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary List all environments
+ */
+export const ListEnvironmentsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  createdAt: zod.string(),
+});
+export const ListEnvironmentsResponse = zod.array(ListEnvironmentsResponseItem);
+
+/**
+ * @summary Create a new environment
+ */
+export const CreateEnvironmentBody = zod.object({
+  name: zod.string(),
+});
+
+/**
+ * @summary Update an environment
+ */
+export const UpdateEnvironmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateEnvironmentBody = zod.object({
+  name: zod.string(),
+});
+
+export const UpdateEnvironmentResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete an environment
+ */
+export const DeleteEnvironmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List tasks with optional filters
+ */
+export const ListTasksQueryParams = zod.object({
+  environmentIds: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated list of environment IDs to filter by"),
+  status: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated list of GTD statuses"),
+  urgency: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated list of urgency levels (now,soon,later)"),
+  search: zod.coerce
+    .string()
+    .optional()
+    .describe("Search string to match against title and description"),
+  tags: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated list of tags to filter by"),
+  includeCompleted: zod.coerce
+    .boolean()
+    .optional()
+    .describe("Include completed tasks (default false)"),
+});
+
+export const ListTasksResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  environmentId: zod.number().nullish(),
+  environmentName: zod.string().nullish(),
+  urgency: zod.enum(["now", "soon", "later"]),
+  rank: zod.number(),
+  status: zod.enum([
+    "inbox",
+    "next_action",
+    "project",
+    "waiting_for",
+    "someday_maybe",
+  ]),
+  dueDate: zod.string().nullish(),
+  tags: zod.array(zod.string()),
+  completed: zod.boolean(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+export const ListTasksResponse = zod.array(ListTasksResponseItem);
+
+/**
+ * @summary Create a new task
+ */
+export const CreateTaskBody = zod.object({
+  title: zod.string(),
+  description: zod.string().nullish(),
+  environmentId: zod.number().nullish(),
+  urgency: zod.enum(["now", "soon", "later"]).optional(),
+  rank: zod.number().optional(),
+  status: zod
+    .enum(["inbox", "next_action", "project", "waiting_for", "someday_maybe"])
+    .optional(),
+  dueDate: zod.string().nullish(),
+  tags: zod.array(zod.string()).optional(),
+  completed: zod.boolean().optional(),
+});
+
+/**
+ * @summary Get task statistics and counts by status/urgency
+ */
+export const GetTaskStatsResponse = zod.object({
+  total: zod.number(),
+  completed: zod.number(),
+  byStatus: zod.array(
+    zod.object({
+      status: zod.string(),
+      count: zod.number(),
+    }),
+  ),
+  byUrgency: zod.array(
+    zod.object({
+      urgency: zod.string(),
+      count: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get a single task by ID
+ */
+export const GetTaskParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetTaskResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  environmentId: zod.number().nullish(),
+  environmentName: zod.string().nullish(),
+  urgency: zod.enum(["now", "soon", "later"]),
+  rank: zod.number(),
+  status: zod.enum([
+    "inbox",
+    "next_action",
+    "project",
+    "waiting_for",
+    "someday_maybe",
+  ]),
+  dueDate: zod.string().nullish(),
+  tags: zod.array(zod.string()),
+  completed: zod.boolean(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Update a task
+ */
+export const UpdateTaskParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateTaskBody = zod.object({
+  title: zod.string().optional(),
+  description: zod.string().nullish(),
+  environmentId: zod.number().nullish(),
+  urgency: zod.enum(["now", "soon", "later"]).optional(),
+  rank: zod.number().optional(),
+  status: zod
+    .enum(["inbox", "next_action", "project", "waiting_for", "someday_maybe"])
+    .optional(),
+  dueDate: zod.string().nullish(),
+  tags: zod.array(zod.string()).optional(),
+  completed: zod.boolean().optional(),
+});
+
+export const UpdateTaskResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  environmentId: zod.number().nullish(),
+  environmentName: zod.string().nullish(),
+  urgency: zod.enum(["now", "soon", "later"]),
+  rank: zod.number(),
+  status: zod.enum([
+    "inbox",
+    "next_action",
+    "project",
+    "waiting_for",
+    "someday_maybe",
+  ]),
+  dueDate: zod.string().nullish(),
+  tags: zod.array(zod.string()),
+  completed: zod.boolean(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Delete a task
+ */
+export const DeleteTaskParams = zod.object({
+  id: zod.coerce.number(),
+});
