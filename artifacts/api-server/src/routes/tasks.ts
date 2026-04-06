@@ -18,20 +18,25 @@ import {
 
 const router: IRouter = Router();
 
+function parseBooleanQueryParam(
+  value: unknown
+): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "boolean") return value;
+  return value === "true" || value === "1";
+}
+
 router.get("/tasks/stats", async (_req, res): Promise<void> => {
   const stats = getTaskStats();
   res.json(stats);
 });
 
 router.get("/tasks", async (req, res): Promise<void> => {
-  const rawQuery = { ...req.query };
-  if ("includeCompleted" in rawQuery) {
-    rawQuery["includeCompleted"] =
-      rawQuery["includeCompleted"] === "true" || rawQuery["includeCompleted"] === "1"
-        ? (true as unknown as string)
-        : (false as unknown as string);
-  }
-  const parsed = ListTasksQueryParams.safeParse(rawQuery);
+  const { includeCompleted: rawIncludeCompleted, ...restQuery } = req.query;
+  const parsed = ListTasksQueryParams.safeParse({
+    ...restQuery,
+    includeCompleted: parseBooleanQueryParam(rawIncludeCompleted),
+  });
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
