@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useGetTaskStats } from "@workspace/api-client-react";
+import { useGetTaskStats, useListEnvironments, useListTasks } from "@workspace/api-client-react";
 import EnvironmentManager from "./EnvironmentManager";
 import { Badge } from "@/components/ui/badge";
 
@@ -35,6 +35,20 @@ const NAV_ITEMS = [
 export default function Sidebar({ currentStatus, onStatusChange }: SidebarProps) {
   const [isEnvManagerOpen, setIsEnvManagerOpen] = useState(false);
   const { data: stats } = useGetTaskStats();
+  const { data: environments } = useListEnvironments();
+  const { data: allTasks } = useListTasks({ includeCompleted: false });
+
+  const envTaskCounts = React.useMemo(() => {
+    const counts: Record<number, number> = {};
+    if (allTasks) {
+      for (const task of allTasks) {
+        if (task.environmentId != null) {
+          counts[task.environmentId] = (counts[task.environmentId] ?? 0) + 1;
+        }
+      }
+    }
+    return counts;
+  }, [allTasks]);
 
   const getStatusCount = (statusId: string | null) => {
     if (!stats) return 0;
@@ -107,6 +121,25 @@ export default function Sidebar({ currentStatus, onStatusChange }: SidebarProps)
             <FolderOpen className="mr-2 h-4 w-4" />
             Manage Environments
           </Button>
+
+          {environments && environments.length > 0 && (
+            <div className="mt-1 space-y-0.5">
+              {environments.map((env) => (
+                <div
+                  key={env.id}
+                  className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-sidebar-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FolderOpen className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                    <span className="truncate">{env.name}</span>
+                  </div>
+                  <span className="ml-2 shrink-0 text-xs tabular-nums">
+                    {envTaskCounts[env.id] ?? 0}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </ScrollArea>
 
