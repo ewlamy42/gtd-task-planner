@@ -3,10 +3,11 @@ import { useListTasks, Task, ListTasksParams } from "@workspace/api-client-react
 import Sidebar from "@/components/Sidebar";
 import QuickAddBar from "@/components/QuickAddBar";
 import TaskCard from "@/components/TaskCard";
+import TaskListItem from "@/components/TaskListItem";
 import FiltersPanel from "@/components/FiltersPanel";
 import TaskEditModal from "@/components/TaskEditModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Inbox, CheckCircle2, ListTodo, FolderKanban, PlayCircle, Hourglass, CalendarDays, Loader2 } from "lucide-react";
+import { Inbox, CheckCircle2, ListTodo, FolderKanban, PlayCircle, Hourglass, CalendarDays, Loader2, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [includeCompleted, setIncludeCompleted] = useState(false);
 
+  const [viewMode, setViewMode] = useState<"cards" | "list">("cards");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const queryParams = useMemo((): ListTasksParams => {
@@ -138,15 +140,37 @@ export default function Dashboard() {
         <header className="shrink-0 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 space-y-4">
           <div className="max-w-5xl mx-auto w-full">
             <QuickAddBar />
-            <div className="mt-4">
-              <FiltersPanel 
-                search={search} setSearch={setSearch}
-                urgencyFilter={urgencyFilter} setUrgencyFilter={setUrgencyFilter}
-                statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-                environmentFilter={environmentFilter} setEnvironmentFilter={setEnvironmentFilter}
-                tagsFilter={tagsFilter} setTagsFilter={setTagsFilter}
-                includeCompleted={includeCompleted} setIncludeCompleted={setIncludeCompleted}
-              />
+            <div className="mt-4 flex items-center gap-2">
+              <div className="flex-1">
+                <FiltersPanel
+                  search={search} setSearch={setSearch}
+                  urgencyFilter={urgencyFilter} setUrgencyFilter={setUrgencyFilter}
+                  statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+                  environmentFilter={environmentFilter} setEnvironmentFilter={setEnvironmentFilter}
+                  tagsFilter={tagsFilter} setTagsFilter={setTagsFilter}
+                  includeCompleted={includeCompleted} setIncludeCompleted={setIncludeCompleted}
+                />
+              </div>
+              <div className="flex items-center border rounded-md shrink-0">
+                <Button
+                  variant={viewMode === "cards" ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-9 w-9 rounded-r-none"
+                  onClick={() => setViewMode("cards")}
+                  aria-label="Card view"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-9 w-9 rounded-l-none"
+                  onClick={() => setViewMode("list")}
+                  aria-label="List view"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </header>
@@ -181,17 +205,32 @@ export default function Dashboard() {
                   </Button>
                 )}
               </div>
-            ) : (
+            ) : viewMode === "cards" ? (
               <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 pb-12">
                 {sortedTasks.map((task, i) => (
-                  <div 
-                    key={task.id} 
+                  <div
+                    key={task.id}
                     className="break-inside-avoid animate-in slide-in-from-bottom-4 fade-in duration-500 fill-mode-backwards"
                     style={{ animationDelay: `${i * 50}ms` }}
                   >
-                    <TaskCard 
-                      task={task} 
-                      onEdit={setEditingTask} 
+                    <TaskCard
+                      task={task}
+                      onEdit={setEditingTask}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 pb-12">
+                {sortedTasks.map((task, i) => (
+                  <div
+                    key={task.id}
+                    className="animate-in slide-in-from-bottom-2 fade-in duration-300 fill-mode-backwards"
+                    style={{ animationDelay: `${i * 30}ms` }}
+                  >
+                    <TaskListItem
+                      task={task}
+                      onEdit={setEditingTask}
                     />
                   </div>
                 ))}
